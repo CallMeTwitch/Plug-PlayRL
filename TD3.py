@@ -6,6 +6,9 @@ import numpy as np
 import torch
 import gym
 
+# Settings
+gym.logger.set_level(40)
+
 # Hyperparameters & Variables
 CRITIC_LEARNING_RATE = 0.001
 ACTOR_LEARNING_RATE = 0.001
