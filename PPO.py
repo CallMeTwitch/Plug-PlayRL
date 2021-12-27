@@ -1,7 +1,6 @@
 # Imports
 from torch.nn.functional import relu, softmax, smooth_l1_loss
 from torch.distributions import Categorical
-from matplotlib import pyplot as plt
 from torch.nn import Module, Linear
 from torch.optim import Adam
 import torch
@@ -14,10 +13,10 @@ DEPRECIATION = 0.98
 HIDDEN_SIZE1 = 64
 HIDDEN_SIZE2 = 32
 PRINT_EVERY = 20
-EPSILON = 0.05
 MAX_STEPS = 20
+EPSILON = 0.05
+EPOCHS = 2_000
 LAMBDA = 0.95
-EPOCHS = 2e3
 
 # PPO Class
 class PPO(Module):
@@ -142,9 +141,6 @@ class PPO(Module):
                 score = 0
 
             self.env.close
-
-        plt.plot(rewards, color = 'black')
-        plt.show()
 
 # Train
 env = gym.make('CartPole-v1')
