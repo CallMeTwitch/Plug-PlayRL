@@ -1,7 +1,6 @@
 # Imports
 from torch.nn.functional import relu, softmax
 from torch.distributions import Categorical
-from matplotlib import pyplot as plt
 from torch.nn import Linear, Module
 from torch.optim import Adam
 import numpy as np
@@ -12,7 +11,7 @@ import gym
 ACTOR_LEARNING_RATE = 5e-4
 HIDDEN_SIZE1 = 128
 HIDDEN_SIZE2 = 128
-NUM_GAMES = 3e3
+NUM_GAMES = 3_000
 GAMMA = 0.99
 
 # Actor Class
@@ -80,15 +79,6 @@ class REINFORCE:
     def store(self, rewards):
         self.reward_mem.append(rewards)
 
-    # Plot
-    def plot_learning_curve(self, x, scores):
-        running_avg = np.zeros(len(scores))
-        for q in range(len(running_avg)):
-            running_avg[q] = np.mean(scores[max(0, q - 100):(q + 1)])
-        plt.plot(x, running_avg)
-        plt.title('Running Average of Previous 100 Scores')
-        plt.show()
-
     # Train
     def train(self):
         scores = []
@@ -109,9 +99,7 @@ class REINFORCE:
 
             avg_score = np.mean(scores[-100:])
             print(f'Episode: {q}, Score: {round(score, 2)}, Average Score: {round(avg_score, 2)}')
-
-        self.plot_learning_curve(scores, [q + 1 for q in range(len(scores))])
-
+            
 # Train
 env = gym.make('LunarLander-v2')
 reinforce = REINFORCE(env)
