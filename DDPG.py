@@ -1,7 +1,6 @@
 # Imports
 from torch.nn import Module, Linear, LayerNorm
 from torch.nn.functional import relu, mse_loss
-from matplotlib import pyplot as plt
 from torch.optim import Adam
 import numpy as np
 import torch
@@ -10,12 +9,12 @@ import gym
 # Hyperparameters & Variables
 CRITIC_LEARNING_RATE = 1e-3
 ACTOR_LEARNING_RATE = 1e-4
+MAX_SIZE = 1_000_000
 WEIGHT_DECAY = 0.01
 HIDDEN_SIZE1 = 400
 HIDDEN_SIZE2 = 300
-NUM_GAMES = 1e3
+NUM_GAMES = 1_000
 BATCH_SIZE = 64
-MAX_SIZE = 1e6
 GAMMA = 0.99
 TAU = 1e-3
 
@@ -51,6 +50,12 @@ class Critic(Module):
 
         return self.value(relu(torch.add(normal_layer2_output, action_value)))
 
+    def backward(self, target, value):
+        self.optimizer.zero_grad()
+        loss = mse_loss(target, value)
+        loss.backward()
+        self.optimizer.step()
+
 # Actor Class
 class Actor(Module):
     def __init__(self, input_shape, action_size):
@@ -78,6 +83,12 @@ class Actor(Module):
         normal_layer2_output = relu(self.normal_layer2(layer2_output))
 
         return torch.tanh(self.mu(normal_layer2_output))
+
+    def backward(self, critic, states):
+        self.optimizer.zero_grad()
+        loss = torch.mean(-critic.forward(states, self.forward(states)))
+        loss.backward()
+        self.optimizer.step()
 
 # Noise Generator Class
 class Ornstein_Uhlenbeck:
@@ -184,16 +195,8 @@ class DDPG:
         target = rewards + self.gamma * next_critic_value
         target = target.view(BATCH_SIZE, 1)
 
-        self.critic.optimizer.zero_grad()
-        critic_loss = mse_loss(target, critic_value)
-        critic_loss.backward()
-        self.critic.optimizer.step()
-
-        self.actor.optimizer.zero_grad()
-        actor_loss = -self.critic.forward(states, self.actor.forward(states))
-        actor_loss = torch.mean(actor_loss)
-        actor_loss.backward()
-        self.actor.optimizer.step()
+        self.critic.backward(target, critic_value)
+        self.actor.backward(self.critic, states)
 
         self.update_network_parameters()
 
@@ -221,15 +224,6 @@ class DDPG:
         self.target_critic.load_state_dict(critic_state_dict)
         self.target_actor.load_state_dict(actor_state_dict)
 
-    # Plot
-    def plot_learning_curve(self, x, scores):
-        running_avg = np.zeros(len(scores))
-        for i in range(len(running_avg)):
-            running_avg[i] = np.mean(scores[max(0, i - 100):(i + 1)])
-        plt.plot(x, running_avg)
-        plt.title('Running average of previous 100 scores')
-        plt.show()
-
     # Train
     def train(self):
         best_score = self.env.reward_range[0]
@@ -253,9 +247,6 @@ class DDPG:
                 best_score = avg_score
 
             print(f'Episode: {i}, Score: {round(score, 2)}, Average Score: {round(avg_score, 2)}')
-
-        x = [i + 1 for i in range(NUM_GAMES)]
-        self.plot_learning_curve(x, score_history)
 
 # Train
 env = gym.make('LunarLanderContinuous-v2')
