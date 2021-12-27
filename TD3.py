@@ -1,6 +1,5 @@
 # Imports
 from torch.nn.functional import relu, mse_loss
-from matplotlib import pyplot as plt
 from torch.nn import Module, Linear
 from torch.optim import Adam
 import numpy as np
@@ -231,15 +230,6 @@ class TD3:
         self.target_critic2.load_state_dict(critic2_state_dict)
         self.target_actor.load_state_dict(actor_state_dict)
 
-    # Plot
-    def plot_learning_curve(self, x, scores):
-        running_avg = np.zeros(len(scores))
-        for i in range(len(running_avg)):
-            running_avg[i] = np.mean(scores[max(0, i - 100):(i + 1)])
-        plt.plot(x, running_avg)
-        plt.title('Running average of previous 100 scores')
-        plt.show()
-
     # Train
     def train(self):
         best_score = self.env.reward_range[0]
@@ -263,9 +253,6 @@ class TD3:
                 best_score = avg_score
 
             print(f'Episode: {i}, Score: {round(score, 2)}, Average: {round(avg_score, 2)}')
-
-        x = [i+1 for i in range(NUM_GAMES)]
-        self.plot_learning_curve(x, score_history)
 
 # Train
 env = gym.make('BipedalWalker-v3')
