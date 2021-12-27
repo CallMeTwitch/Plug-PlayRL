@@ -9,7 +9,7 @@ import gym
 
 # Hyperparameters & Variables
 LEARNING_RATE = 3e-4
-MAX_EPISODES = 3e3
+MAX_EPISODES = 3_000
 HIDDEN_SIZE = 256
 NUM_STEPS = 300
 GAMMA = 0.99
