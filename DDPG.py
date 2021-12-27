@@ -83,7 +83,8 @@ class Actor(Module):
         normal_layer2_output = relu(self.normal_layer2(layer2_output))
 
         return torch.tanh(self.mu(normal_layer2_output))
-
+    
+    # Backward Pass
     def backward(self, critic, states):
         self.optimizer.zero_grad()
         loss = torch.mean(-critic.forward(states, self.forward(states)))
