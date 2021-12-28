@@ -227,7 +227,6 @@ class DDPG:
 
     # Train
     def train(self):
-        best_score = self.env.reward_range[0]
         score_history = []
         for i in range(NUM_GAMES):
             observation = self.env.reset()
@@ -243,9 +242,6 @@ class DDPG:
                 observation = observation_
             score_history.append(score)
             avg_score = np.mean(score_history[-100:])
-
-            if avg_score > best_score:
-                best_score = avg_score
 
             print(f'Episode: {i}, Score: {round(score, 2)}, Average Score: {round(avg_score, 2)}')
 
